@@ -3,76 +3,53 @@
   .personal
     img.avatar(src="./../assets/avatar.png")
     .name {{name}}
-  .card(v-for="item in cardList" @click="turn")
-    img.icon(:src="item.icon")
-    .title {{item.title}}
+  .card(@click="turn" v-if="!type")
+    img.icon(:src="cardList.image")
+    .title {{cardList.title}}
       img.open(src="./../assets/open.png")
     .info
       .options
         .label
           img.icon-label(src="./../assets/where.png")
           .label-desc Where
-        .option {{item.where}}
+        .option {{cardList.where}}
       .options
         .label
           img.icon-label(src="./../assets/when.png")
           .label-desc Where
-        .option {{item.when}}
+        .option {{cardList.when}}
+  .message(v-if="type") The invitation seats have been filled
+    br/ There is no tickens yet
+
 </template>
 
 <script>
 import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 
 export default {
   name: 'TicketList',
   setup() {
     const router = useRouter();
+    const { type } = useRoute().query;
+    const cardList = ref('');
+    if (!type) {
+      cardList.value = window.wallet.tickInfo;
+    }
     const connetIng = ref(false);
     const loading = ref(false);
-    const name = ref('0x3564AABBCCDD311e');
-    const cardList = ref([
-      {
-        // eslint-disable-next-line global-require
-        icon: require('../assets/iconTicket.png'),
-        title: 'TokenDance 2022',
-        where: 'This is a place',
-        when: '2022-12-12  14:00:00',
-      },
-      {
-        // eslint-disable-next-line global-require
-        icon: require('../assets/iconTicket.png'),
-        title: 'TokenDance 2022',
-        where: 'This is a place',
-        when: '2022-12-12  14:00:00',
-      },
-      {
-        // eslint-disable-next-line global-require
-        icon: require('../assets/iconTicket.png'),
-        title: 'TokenDance 2022',
-        where: 'This is a place',
-        when: '2022-12-12  14:00:00',
-      },
-      {
-        // eslint-disable-next-line global-require
-        icon: require('../assets/iconTicket.png'),
-        title: 'TokenDance 2022',
-        where: 'This is a place',
-        when: '2022-12-12  14:00:00',
-      },
-    ]);
-    const changeName = () => {
-      if (name.value.length > 11) {
-        name.value = `${name.value.substring(0, 6)}……${name.value.substring(name.value.length - 4, name.value.length)}`;
-      }
+    const name = ref();
+    const changeName = (value) => {
+      name.value = `${value.substring(0, 6)}……${value.substring(value.length - 4, value.length)}`;
     };
-    changeName(name.value);
+    changeName(window.wallet.address);
     const turn = () => {
-      router.push({ path: 'ticketList' });
+      router.push({ path: 'ticketInfo' });
     };
     return {
       cardList,
       name,
+      type,
       connetIng,
       loading,
       turn,
@@ -90,6 +67,17 @@ export default {
   .personal
     width 100%
     overflow hidden
+  .message
+    width 5.8rem
+    font-family: 'PingFang SC';
+    font-style: normal;
+    font-weight: 400;
+    font-size: 18px;
+    line-height: 24px;
+    margin 2rem auto 0
+    text-align center
+    color: #FFFFFF;
+    opacity: 0.5;
   .avatar
     width 2.08rem
     height 2.08rem
@@ -111,16 +99,16 @@ export default {
     color #FFFFFF
   .card
     width 6.7rem
-    height 4.52rem
-    background rgba(13, 37, 54, 0.8)
+    height 4.54rem
     border-radius 0px 0px 0.4rem 0.4rem
     margin 0 auto 0.4rem
     background-image url(./../assets/cardBg.png)
     background-size 100% 100%
+    overflow hidden
     .icon
       width 2.3rem
       height 2.3rem
-      margin 0.2rem auto 0.26rem
+      margin 0.2rem auto 0.06rem
       display block
     .title
       font-family 'PingFang SC'

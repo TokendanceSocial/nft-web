@@ -1,5 +1,5 @@
 <template lang="pug">
-.person(@click="connet")
+.person(@click="contact")
   .content
     .title Connet your Wallet
     img.avatar(src="./../assets/avatar.png")
@@ -10,6 +10,9 @@
 
 <script>
 import { useRouter } from 'vue-router';
+import { ethers } from 'ethers';
+import { contractAbi } from '../config/TicketContract';
+import config from '../config/index';
 
 export default {
   name: 'PersonView',
@@ -17,13 +20,26 @@ export default {
   },
   setup() {
     const router = useRouter();
-    const connet = () => {
-      router.push({
-        path: 'getTicket',
+    console.log('router: ', router);
+    const contact = () => {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      window.wallet = {};
+      window.wallet.provider = provider;
+      const signer = provider.getSigner();
+      provider.send('eth_requestAccounts', []).then((res) => {
+        // eslint-disable-next-line prefer-destructuring
+        window.wallet.address = res[0];
+        console.log(' res[0]: ', res);
+        const greet = new ethers.Contract(config.CONTRACT_ADDRESS, contractAbi.abi, signer);
+        // eslint-disable-next-line no-underscore-dangle
+        console.log('greet: ', greet);
+        router.push({
+          path: 'getTicket',
+        });
       });
     };
     return {
-      connet,
+      contact,
     };
   },
 };

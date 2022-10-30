@@ -1,7 +1,7 @@
 <template lang="pug">
 .home
   img.banner(src="./../assets/banner.png")
-  .start(@click="login")
+  .start(@click="turn")
   img.title(src="./../assets/Frame1410098464.png")
   .goal
     .sub-title 会议目的
@@ -12,14 +12,7 @@
 </template>
 
 <script>
-import { useRouter } from 'vue-router';
-import { ethers } from 'ethers';
-import { ref } from 'vue';
-import { contractAbi } from '../config/TicketContract';
-import config from '../config/index';
-
-console.log('ethers: ', ethers);
-console.log('contractAbi: ', contractAbi);
+import { useRouter, useRoute } from 'vue-router';
 
 export default {
   name: 'HomeView',
@@ -27,52 +20,25 @@ export default {
   },
   setup() {
     const router = useRouter();
-    const turn = (addr) => {
+    const route = useRoute();
+    const { address, tockenUrl } = route.query;
+    if (address && tockenUrl) {
+      window.inviteInfo = {
+        address,
+        tockenUrl: decodeURIComponent(tockenUrl),
+      };
+    }
+    console.log('router: ', router);
+    const turn = () => {
+      console.log('userAgent:=====', window.navigator.userAgent);
       router.push({
         path: 'person',
-        query: {
-          address: addr,
-        },
       });
+      // window.location.href = 'https://metamask.app.link/dapp/www.baidu.com';
+      // window.location.href = 'https://metamask.app.link/dapp/www.baidu.com/';
     };
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const address = ref(null);
-    provider.send('eth_requestAccounts', []).then((res) => {
-      console.log('res: ', res);
-      // eslint-disable-next-line prefer-destructuring
-      address.value = res[0];
-    });
-    const handleEthereum = async () => {
-      const greet = new ethers.Contract(config.CONTRACT_ADDRESS, contractAbi.abi, provider);
-      console.log('address.value: ', address.value);
-      greet.check_tokenid(config.PUBLIC_KEY).then((res) => {
-        console.log('res:====', res);
-        debugger;
-      }).catch((reason) => {
-        debugger;
-        console.log('reason:====', reason);
-      });
-      // const wd = await greet.greet();
-      // console.log('wd: ', wd);
-      console.log('greet: ', greet);
-    };
-
-    const login = async () => {
-      if (window.ethereum) {
-        handleEthereum();
-      } else {
-        window.addEventListener('ethereum#initialized', handleEthereum, {
-          once: true,
-        });
-        setTimeout(handleEthereum, 3000); // 3 seconds
-      }
-    };
-    // const login = () => {
-
-    // };
     return {
       turn,
-      login,
     };
   },
 };

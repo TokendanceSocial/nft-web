@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@metamask/detect-provider": "^2.0.0",
-    "axios": "^0.21.1",
+    "axios": "^0.21.4",
     "core-js": "^3.8.3",
     "ethers": "^5.7.2",
     "vconsole": "^3.14.7",

@@ -3,26 +3,111 @@
   .content
     img.title(src="./../assets/NewTicken.png")
     .loading(v-if="loading") Your ticken is coming…
-    img.icon(src="./../assets/icon.png" v-show="!loading")
-    .desc(v-show="!loading") TokenDance 2022
+    img.icon(:src="tickInfo.image" v-show="!loading")
+    .desc(v-show="!loading") {{tickInfo.title}}
     img.get-it(src="./../assets/getIt.png" v-show="!loading" @click="turn")
 </template>
 
 <script>
-import { ref } from 'vue';
+import { ref, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
+import { ethers } from 'ethers';
+import axios from 'axios';
+import { contractAbi } from '../config/TicketContract';
+import config from '../config/index';
 
 export default {
   name: 'GetTicket',
   setup() {
     const router = useRouter();
     const connetIng = ref(false);
-    const loading = ref(false);
+    const loading = ref(true);
     const turn = () => {
       router.push({ path: 'ticketList' });
     };
+    const { provider, address } = window.wallet;
+    const tockenId = ref('');
+    const tickInfo = ref({});
+    const signer = provider.getSigner();
+    const handleImgSrc = (baseUrl, urlDetail) => {
+      console.log('urlDetail: ', urlDetail);
+      console.log('baseUrl: ', baseUrl);
+      // urlDetail:  ipfs://QmUJ5QHheEJzTwmF4t5QgoLoL5L1DWcdzeo2vG64DBRMC2/1.png
+      // baseUrl:  https://gateway.pinata.cloud/ipfs/QmT7EdhAvGgocnxeFM6SrB9ud6rT4X7MJLbo6ZK4hd1wS4/
+      const url = `${baseUrl.split('/ipfs/')[0]}/ipfs/${urlDetail.split('ipfs://')[1]}`;
+      return url;
+    };
+    const greet = new ethers.Contract(config.CONTRACT_ADDRESS, contractAbi.abi, signer);
+    const getTicketInfo = () => {
+      greet.check_tokenid(address).then((res) => {
+        // eslint-disable-next-line no-underscore-dangle
+        tockenId.value = parseInt(res._hex, 16);
+        greet.tokenURI(tockenId.value).then((info) => {
+          window.wallet.tockenUrl = info;
+          const JSONUrl = `${info}${tockenId.value + 1}.json`;
+          axios.get(JSONUrl).then((response) => {
+            let data = {};
+            if (Array.isArray(response?.data?.attributes)) {
+              data = {
+                title: 'TokenDance 2022',
+                where: 'This is a place',
+                when: '2022-12-12  14:00:00',
+                introduce: 'A Web3 Evangelism Conference for Chinese Internet People.To Explore Web3 Application Startup Opportunities',
+                tokenid: '1324567',
+                creator: 'tokendance.eth',
+                tokenstandard: 'ERC721',
+                image: handleImgSrc(info, response?.data?.image),
+              };
+            } else {
+              data = { ...response?.data?.attributes, image: handleImgSrc(info, response?.data?.attributes.img) };
+            }
+            // const data = { ...response?.data?.attributes, image: handleImgSrc(info, response?.data?.attributes.img) };
+            tickInfo.value = data;
+            window.wallet.tickInfo = data;
+            nextTick(() => {
+              loading.value = false;
+            });
+          });
+        }).catch((reason) => {
+          loading.value = false;
+          router.push({
+            path: 'ticketList',
+            query: {
+              type: 'cantGetTicket',
+            },
+          });
+          console.log('reason:====', reason);
+        });
+      }).catch((reason) => {
+        console.log('reason:====', reason);
+      });
+    };
+    const handleEthereum = async () => {
+      if (window.inviteInfo) {
+        const { address: shareAddress, tockenUrl } = window.inviteInfo;
+        console.log('shareAddress: ', shareAddress);
+        greet.mint_2g(shareAddress, '0x7895B51D6D8bF0f587a1c6395eF5952AA4296c66', tockenUrl).then((i) => {
+          console.log('info:i====', i);
+          i.wait(1);
+          getTicketInfo();
+        }).catch((reason) => {
+          console.log('reason: ', reason);
+          loading.value = false;
+          router.push({
+            path: 'ticketList',
+            query: {
+              type: 'cantGetTicket',
+            },
+          });
+        });
+      } else {
+        getTicketInfo();
+      }
+    };
+    handleEthereum();
     return {
       connetIng,
+      tickInfo,
       loading,
       turn,
     };

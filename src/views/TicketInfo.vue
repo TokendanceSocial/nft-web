@@ -4,18 +4,17 @@
     .header-bg
     .ticket-dec
       .dec-title
-        img.info-icon(src="@/assets/info-icon.png", draggle="false")
+        img.info-icon(:src="info.image", draggle="false")
         .info-text
-          p.text-top TokenDance 2022
-          p.text-bottom A Web3 Evangelism Conference for Chinese Internet People.
-            | To Explore Web3 Application Startup Opportunities
+          p.text-top {{info.title}}
+          p.text-bottom {{info.introduce}}
       .address
         .item
           .icon-where.icon where
-          span This is a place
+          span {{info.where}}
         .item
           .icon-when.icon when
-          span 2022-12-12  14:00:00
+          span {{info.when}}
       .line
       .chain
         .chain-item
@@ -23,40 +22,103 @@
           .item-value -
         .chain-item
           .item-name Creator
-          .item-value tokendance.eth
+          .item-value {{info.creator}}
         .chain-item
           .item-name Token Standard
-          .item-value ERC721
+          .item-value {{info.tokenstandard}}
         .chain-item
           .item-name Asset contract
-          .item-value 0x49cF…A28B
+          .item-value {{address}}
         .chain-item
           .item-name Token id
-          .item-value 1324567
+          .item-value {{info.tokenid}}
       .line
-      .invite.invite-extra
-        .position(v-show="!showInviteBtn")
-          .no-person()(v-show="showInviteBtn")
-          .has-person
-            img(src="~@/assets/avatar.png")
-            p.name 锅糊了
-        .position(v-show="!showInviteBtn")
-          .no-person
-          .has-person
-            img()
-        .invite-btn(v-show="showInviteBtn")
-      p.tip-btn You can click the invite button
-      p.tip-btn to invite 2 people  to the conference
+      .invite.invite-extra(v-show="showInviteBtn")
+        .position(v-for="index in 2")
+          .no-person(v-if="!inviteList[index - 1]" @click="copy")
+          .has-person(v-if="inviteList[index - 1]")
+            img(src="~@/assets/avatarHead.png")
+            p.name {{inviteList[index - 1]}}
+      p.tip-btn(v-if="inviteList.length < 2") You can click the invite button
+      p.tip-btn(v-if="inviteList.length < 2") to invite 2 people  to the conference
+      p.tip-btn(v-if="inviteList.length === 2") You have invited 2 people
+  toast(:message="message", :type="toastType")
 </template>
 
 <script>
 import { ref } from 'vue';
+import { ethers } from 'ethers';
+import toast from '../components/Toast.vue';
+import config from '../config/index';
+import { contractAbi } from '../config/TicketContract';
 
 export default ({
+  components: {
+    toast,
+  },
   setup() {
     const showInviteBtn = ref(false);
+    const address = ref('');
+    const toastType = ref('right');
+    const message = ref('');
+    const changeName = () => {
+      address.value = `${window.wallet.address.substring(0, 6)}……${window.wallet.address.substring(window.wallet.address.length - 4, window.wallet.address.length)}`;
+    };
+    const inviteList = ref([]);
+    const { provider } = window.wallet;
+    const signer = provider.getSigner();
+    const greet = new ethers.Contract(config.CONTRACT_ADDRESS, contractAbi.abi, signer);
+    // eslint-disable-next-line no-underscore-dangle
+    greet._1gpeople(window.wallet.address).then(async (i) => {
+      console.log('i: ', i);
+      if (!i) return;
+      showInviteBtn.value = true;
+      // eslint-disable-next-line no-underscore-dangle
+      let address1 = '';
+      let address2 = '';
+      try {
+        // eslint-disable-next-line no-underscore-dangle
+        address1 = await greet._invitepeople(window.wallet.address, 0);
+        inviteList.value.push(address1);
+      } catch (error) {
+        console.log('error: ', error);
+      }
+      try {
+        if (address1) {
+          // eslint-disable-next-line no-underscore-dangle
+          address2 = await greet._invitepeople(window.wallet.address, 1);
+          inviteList.value.push(address2);
+        }
+      } catch (error) {
+        console.log('error: ', error);
+      }
+      console.log('inviteList: ', inviteList);
+    }).catch((reason) => {
+      console.log('reason:œ====', reason);
+    });
+
+    const copy = () => {
+      const value = `${window.location.origin}/#/?address=${window.wallet.address}&tockenUrl=${encodeURIComponent(window.wallet.tockenUrl)}`;
+      const copyInput = document.createElement('input');
+      document.body.appendChild(copyInput);
+      copyInput.setAttribute('value', value);
+      copyInput.select();
+      document.execCommand('Copy');
+      message.value = 'The link was successfully copied';
+      setTimeout(() => {
+        message.value = '';
+      }, 2000);
+      copyInput.remove();// 删除动态创建的节点
+    };
+    changeName();
     return {
+      toastType,
+      message,
       showInviteBtn,
+      inviteList,
+      info: window.wallet.tickInfo,
+      address,
+      copy,
     };
   },
 });
@@ -64,7 +126,7 @@ export default ({
 
 <style scoped lang="stylus">
 .ticket-info {
-  background-color #303030
+  background-color #0C1119
   width 100%
   height 100%
   overflow hidden
@@ -80,7 +142,7 @@ export default ({
     flex: 1
     display flex
     flex-direction column
-    background-color rgba(0, 0, 0, 0.3)
+    background-color #0C1119
     .header-bg {
       height: 0.96rem
       width: 100%
@@ -225,8 +287,15 @@ export default ({
             font-weight 800
             font-size: 0.24rem
             position: relative;
+            color: rgba(51, 0, 194, 1);
+            font-weight: 800;
             top: -50%;
             transform: translate(0, 70%);
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            box-sizing border-box
+            padding 0 0.2rem
           }
         }
       }
