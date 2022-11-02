@@ -32,35 +32,42 @@ export default {
     const handleImgSrc = (baseUrl, urlDetail) => {
       console.log('urlDetail: ', urlDetail);
       console.log('baseUrl: ', baseUrl);
-      // urlDetail:  ipfs://QmUJ5QHheEJzTwmF4t5QgoLoL5L1DWcdzeo2vG64DBRMC2/1.png
-      // baseUrl:  https://gateway.pinata.cloud/ipfs/QmT7EdhAvGgocnxeFM6SrB9ud6rT4X7MJLbo6ZK4hd1wS4/
       const url = `${baseUrl.split('/ipfs/')[0]}/ipfs/${urlDetail.split('ipfs://')[1]}`;
-      return url;
+      return `https://${url.split('//')[1].split('/').slice(0, -1).join('/')}/1.png`;
     };
     const greet = new ethers.Contract(config.CONTRACT_ADDRESS, contractAbi.abi, signer);
     const getTicketInfo = () => {
       greet.check_tokenid(address).then((res) => {
         // eslint-disable-next-line no-underscore-dangle
         tockenId.value = parseInt(res._hex, 16);
+        if (tockenId.value === 0) {
+          router.push({
+            path: 'ticketList',
+            query: {
+              type: 'notTicket',
+            },
+          });
+        }
         greet.tokenURI(tockenId.value).then((info) => {
+          console.log('info: ', info);
           window.wallet.tockenUrl = info;
           const JSONUrl = `${info}${tockenId.value + 1}.json`;
           axios.get(JSONUrl).then((response) => {
             let data = {};
-            if (Array.isArray(response?.data?.attributes)) {
-              data = {
-                title: 'TokenDance 2022',
-                where: 'This is a place',
-                when: '2022-12-12  14:00:00',
-                introduce: 'A Web3 Evangelism Conference for Chinese Internet People.To Explore Web3 Application Startup Opportunities',
-                tokenid: '1324567',
-                creator: 'tokendance.eth',
-                tokenstandard: 'ERC721',
-                image: handleImgSrc(info, response?.data?.image),
-              };
-            } else {
-              data = { ...response?.data?.attributes, image: handleImgSrc(info, response?.data?.attributes.img) };
-            }
+            // if (Array.isArray(response?.data?.attributes)) {
+            //   data = {
+            //     title: 'TokenDance 2022',
+            //     where: 'This is a place',
+            //     when: '2022-12-12  14:00:00',
+            //     introduce: 'A Web3 Evangelism Conference for Chinese Internet People.To Explore Web3 Application Startup Opportunities',
+            //     tokenid: '1324567',
+            //     creator: 'tokendance.eth',
+            //     tokenstandard: 'ERC721',
+            //     image: handleImgSrc(info, response?.data?.image),
+            //   };
+            // } else {
+            data = { ...response?.data?.attributes, image: handleImgSrc(info, response?.data?.attributes.img) };
+            // }
             // const data = { ...response?.data?.attributes, image: handleImgSrc(info, response?.data?.attributes.img) };
             tickInfo.value = data;
             window.wallet.tickInfo = data;
@@ -76,34 +83,50 @@ export default {
               type: 'cantGetTicket',
             },
           });
-          console.log('reason:====', reason);
+          console.log('reason:====1', reason);
         });
       }).catch((reason) => {
-        console.log('reason:====', reason);
+        loading.value = false;
+        router.push({
+          path: 'ticketList',
+          query: {
+            type: 'cantGetTicket',
+          },
+        });
+        debugger;
+        console.log('reason:====2', reason);
       });
     };
     const handleEthereum = async () => {
+      console.log('window.inviteInfo', window.inviteInfo);
       if (window.inviteInfo) {
         const { address: shareAddress, tockenUrl } = window.inviteInfo;
         console.log('shareAddress: ', shareAddress);
-        greet.mint_2g(shareAddress, '0x7895B51D6D8bF0f587a1c6395eF5952AA4296c66', tockenUrl).then((i) => {
+        greet.mint_2g(shareAddress, address, tockenUrl).then((i) => {
           console.log('info:i====', i);
           i.wait(1);
-          getTicketInfo();
+          setTimeout(() => {
+            getTicketInfo();
+          }, 10000);
         }).catch((reason) => {
-          console.log('reason: ', reason);
+          console.log('reason:====3', reason);
           loading.value = false;
-          router.push({
-            path: 'ticketList',
-            query: {
-              type: 'cantGetTicket',
-            },
-          });
+          if (reason.error.code === -32603) {
+            getTicketInfo();
+          } else {
+            router.push({
+              path: 'ticketList',
+              query: {
+                type: 'cantGetTicket',
+              },
+            });
+          }
         });
       } else {
         getTicketInfo();
       }
     };
+    console.log('window.inviteInfo', window.inviteInfo);
     handleEthereum();
     return {
       connetIng,

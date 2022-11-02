@@ -4,7 +4,7 @@ module.exports = defineConfig({
   transpileDependencies: true,
   publicPath: './',
   devServer: {
-    https: true,
+    // https: true,
     port: 9000,
     // allowedHosts: 'all',
     // host: 'home.youdao.com'

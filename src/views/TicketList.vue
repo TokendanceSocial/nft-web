@@ -18,7 +18,8 @@
           img.icon-label(src="./../assets/when.png")
           .label-desc Where
         .option {{cardList.when}}
-  .message(v-if="type") The invitation seats have been filled
+  .message(v-if="type === 'notTicket'") There is no tickens yet
+  .message(v-if="type === 'cantGetTicket'") The invitation seats have been filled
     br/ There is no tickens yet
 
 </template>

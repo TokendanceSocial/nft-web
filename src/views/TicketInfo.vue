@@ -39,8 +39,8 @@
           .has-person(v-if="inviteList[index - 1]")
             img(src="~@/assets/avatarHead.png")
             p.name {{inviteList[index - 1]}}
-      p.tip-btn(v-if="inviteList.length < 2") You can click the invite button
-      p.tip-btn(v-if="inviteList.length < 2") to invite 2 people  to the conference
+      p.tip-btn(v-if="inviteList.length < 2 && inviteList.length > 0") You can click the invite button
+      p.tip-btn(v-if="inviteList.length < 2 && inviteList.length > 0") to invite 2 people  to the conference
       p.tip-btn(v-if="inviteList.length === 2") You have invited 2 people
   toast(:message="message", :type="toastType")
 </template>

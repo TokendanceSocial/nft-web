@@ -22,21 +22,26 @@ export default {
     const router = useRouter();
     console.log('router: ', router);
     const contact = () => {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      window.wallet = {};
-      window.wallet.provider = provider;
-      const signer = provider.getSigner();
-      provider.send('eth_requestAccounts', []).then((res) => {
+      const { userAgent } = window.navigator;
+      if (userAgent.indexOf('MetaMaskMobile') !== -1) {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        window.wallet = {};
+        window.wallet.provider = provider;
+        const signer = provider.getSigner();
+        provider.send('eth_requestAccounts', []).then((res) => {
         // eslint-disable-next-line prefer-destructuring
-        window.wallet.address = res[0];
-        console.log(' res[0]: ', res);
-        const greet = new ethers.Contract(config.CONTRACT_ADDRESS, contractAbi.abi, signer);
-        // eslint-disable-next-line no-underscore-dangle
-        console.log('greet: ', greet);
-        router.push({
-          path: 'getTicket',
+          window.wallet.address = res[0];
+          console.log(' res[0]: ', res);
+          const greet = new ethers.Contract(config.CONTRACT_ADDRESS, contractAbi.abi, signer);
+          // eslint-disable-next-line no-underscore-dangle
+          console.log('greet: ', greet);
+          router.push({
+            path: 'getTicket',
+          });
         });
-      });
+      } else {
+        window.location.href = `https://metamask.app.link/dapp/tokendance.xyz/#/?address=${window.inviteInfo.address}&tockenUrl=${encodeURIComponent(window.inviteInfo.tockenUrl)}`;
+      }
     };
     return {
       contact,

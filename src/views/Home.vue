@@ -30,12 +30,16 @@ export default {
     }
     console.log('router: ', router);
     const turn = () => {
-      console.log('userAgent:=====', window.navigator.userAgent);
+      // const { userAgent } = window.navigator;
+      // console.log('userAgent: ', userAgent);
+      // console.log('userAgent:=====', userAgent.indexOf('MetaMaskMobile'));
+      // if (userAgent.indexOf('MetaMaskMobile') !== -1) {
       router.push({
         path: 'person',
       });
-      // window.location.href = 'https://metamask.app.link/dapp/www.baidu.com';
-      // window.location.href = 'https://metamask.app.link/dapp/www.baidu.com/';
+      // } else {
+      //   window.location.href = 'https://metamask.app.link/dapp/www.baidu.com';
+      // }
     };
     return {
       turn,
