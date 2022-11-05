@@ -2,7 +2,7 @@
 .home
   img.banner(src="./../assets/banner.png")
   .start(@click="turn")
-  .title What kind of meeting is this？
+  .title Conference Introduction
   .goal
     //- .sub-title 会议目的
     .desc A co-creation conference for web3 buidlers and tech firm employees to explore new possibilities of Web3 applications
