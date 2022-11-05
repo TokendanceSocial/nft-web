@@ -4,11 +4,14 @@
   .start(@click="turn")
   img.title(src="./../assets/Frame1410098464.png")
   .goal
-    .sub-title 会议目的
-    p 面向中文互联网从业者、创业者普及 Web3 应用创新创业知识，探索 Web3 时代中国互联网全球增长之道面向中文互联网从业者、
-    p 创业者普及 Web3 应用创新创业知识，探索 Web3 时代中国互联网全球增长之道面向中文互联网从业者、创业者普及 Web3 应用创
-    p 新创业知识，探索 Web3 时代中国互联网全球增长之道面向中文互联网从业者、创业者普及 Web3 应用创新创业知识，探索 Web3
-    p 时代中国互联网全球增长之道面向中文互联网从业者、创业者普及 Web3 应用创新创业知识，探索 Web3 时代中国互联网全球增长之道
+    //- .sub-title 会议目的
+    .desc A co-creation conference for web3 buidlers and tech firm employees to explore new possibilities of Web3 applications
+    p Purpose of the meeting: First-line experience + web3 technology and ideas = disruptive innovation
+    p Venue:
+    span Online: multi-channel LIVE streaming
+    span Offline: Hongqiao region, Shanghai
+    p Time: Nov. 25-Nov. 27, 2022
+    p Participants: employees of BAT, Web3 buidlers, investors etc.
 </template>
 
 <script>
@@ -94,6 +97,16 @@ export default {
       background-clip text
       text-fill-color transparent
       text-align left
+    .desc
+      font-family 'PingFang SC'
+      font-style normal
+      font-weight 400
+      font-size 0.26rem
+      line-height 0.4rem
+      text-transform capitalize
+      color #FFFFFF
+      opacity 0.5
+      text-align left
     p
       font-family 'PingFang SC'
       font-style normal
@@ -104,4 +117,24 @@ export default {
       color #FFFFFF
       opacity 0.5
       text-align left
+      &:before
+        content '•'
+        color black
+        font-size 0.2rem
+        margin-right 0.2rem
+        line-height 0.4rem
+        color #fff
+        font-weight bold
+    span
+      font-family 'PingFang SC'
+      font-style normal
+      font-weight 400
+      font-size 0.26rem
+      line-height 0.4rem
+      text-transform capitalize
+      color #FFFFFF
+      opacity 0.5
+      text-align left
+      display block
+      margin-left 0.6rem
 </style>

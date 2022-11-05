@@ -9,7 +9,7 @@
 </template>
 
 <script>
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { ethers } from 'ethers';
 import { contractAbi } from '../config/TicketContract';
 import config from '../config/index';
@@ -21,8 +21,16 @@ export default {
   setup() {
     const router = useRouter();
     console.log('router: ', router);
-    const contact = () => {
-      const { userAgent } = window.navigator;
+    const route = useRoute();
+    const { userAgent } = window.navigator;
+    const { address, tockenUrl } = route.query;
+    if (address && tockenUrl) {
+      window.inviteInfo = {
+        address,
+        tockenUrl: decodeURIComponent(tockenUrl),
+      };
+    }
+    const initWallet = () => {
       if (userAgent.indexOf('MetaMaskMobile') !== -1) {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         window.wallet = {};
@@ -39,10 +47,22 @@ export default {
             path: 'getTicket',
           });
         });
-      } else {
-        window.location.href = `https://metamask.app.link/dapp/tokendance.xyz/#/?address=${window.inviteInfo.address}&tockenUrl=${encodeURIComponent(window.inviteInfo.tockenUrl)}`;
       }
     };
+    const contact = () => {
+      if (userAgent.indexOf('MetaMaskMobile') !== -1) {
+        initWallet();
+      } else {
+        let url = '';
+        if (window.inviteInfo) {
+          url = `https://metamask.app.link/dapp/tokendance.xyz/#/person?address=${window.inviteInfo.address}&tockenUrl=${encodeURIComponent(window.inviteInfo.tockenUrl)}`;
+        } else {
+          url = 'https://metamask.app.link/dapp/tokendance.xyz/#/person';
+        }
+        window.location.href = url;
+      }
+    };
+    initWallet();
     return {
       contact,
     };

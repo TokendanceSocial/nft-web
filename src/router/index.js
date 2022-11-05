@@ -33,5 +33,12 @@ const router = createRouter({
   history: createWebHashHistory(),
   routes,
 });
-
+router.beforeEach((to, from, next) => {
+  const goHomeFlag = window.navigator.userAgent.indexOf('MetaMaskMobile') === -1;
+  if (goHomeFlag && !['/', '/person'].includes(to.path)) {
+    next('/');
+  } else {
+    next();
+  }
+});
 export default router;

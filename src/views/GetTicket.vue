@@ -20,22 +20,31 @@ export default {
   name: 'GetTicket',
   setup() {
     const router = useRouter();
-    const connetIng = ref(false);
     const loading = ref(true);
     const turn = () => {
       router.push({ path: 'ticketList' });
     };
-    const { provider, address } = window.wallet;
     const tockenId = ref('');
     const tickInfo = ref({});
-    const signer = provider.getSigner();
+    const isBuy = ref(false);
     const handleImgSrc = (baseUrl, urlDetail) => {
       console.log('urlDetail: ', urlDetail);
       console.log('baseUrl: ', baseUrl);
       const url = `${baseUrl.split('/ipfs/')[0]}/ipfs/${urlDetail.split('ipfs://')[1]}`;
       return `https://${url.split('//')[1].split('/').slice(0, -1).join('/')}/1.png`;
     };
-    const greet = new ethers.Contract(config.CONTRACT_ADDRESS, contractAbi.abi, signer);
+    let provider = {};
+    let address = '';
+    let signer = {};
+    let greet = {};
+    if (!window.wallet) {
+      router.push({ path: 'ticketList' });
+    } else {
+      provider = window.wallet.provider;
+      address = window.wallet.address;
+      signer = provider.getSigner();
+      greet = new ethers.Contract(config.CONTRACT_ADDRESS, contractAbi.abi, signer);
+    }
     const getTicketInfo = () => {
       greet.check_tokenid(address).then((res) => {
         // eslint-disable-next-line no-underscore-dangle
@@ -53,24 +62,14 @@ export default {
           window.wallet.tockenUrl = info;
           const JSONUrl = `${info}${tockenId.value + 1}.json`;
           axios.get(JSONUrl).then((response) => {
-            let data = {};
-            // if (Array.isArray(response?.data?.attributes)) {
-            //   data = {
-            //     title: 'TokenDance 2022',
-            //     where: 'This is a place',
-            //     when: '2022-12-12  14:00:00',
-            //     introduce: 'A Web3 Evangelism Conference for Chinese Internet People.To Explore Web3 Application Startup Opportunities',
-            //     tokenid: '1324567',
-            //     creator: 'tokendance.eth',
-            //     tokenstandard: 'ERC721',
-            //     image: handleImgSrc(info, response?.data?.image),
-            //   };
-            // } else {
-            data = { ...response?.data?.attributes, image: handleImgSrc(info, response?.data?.attributes.img) };
-            // }
-            // const data = { ...response?.data?.attributes, image: handleImgSrc(info, response?.data?.attributes.img) };
+            const data = { ...response?.data?.attributes, image: handleImgSrc(info, response?.data?.attributes.img) };
             tickInfo.value = data;
             window.wallet.tickInfo = data;
+            if (!isBuy.value) {
+              router.push({
+                path: 'ticketList',
+              });
+            }
             nextTick(() => {
               loading.value = false;
             });
@@ -93,26 +92,34 @@ export default {
             type: 'cantGetTicket',
           },
         });
-        debugger;
         console.log('reason:====2', reason);
       });
     };
     const handleEthereum = async () => {
-      console.log('window.inviteInfo', window.inviteInfo);
       if (window.inviteInfo) {
         const { address: shareAddress, tockenUrl } = window.inviteInfo;
+        console.log('tockenUrl: ', tockenUrl);
+        console.log('address: ', address);
         console.log('shareAddress: ', shareAddress);
         greet.mint_2g(shareAddress, address, tockenUrl).then((i) => {
           console.log('info:i====', i);
           i.wait(1);
+          isBuy.value = true;
           setTimeout(() => {
             getTicketInfo();
           }, 10000);
         }).catch((reason) => {
-          console.log('reason:====3', reason);
           loading.value = false;
-          if (reason.error.code === -32603) {
+          if (typeof reason === 'object' && reason.error?.code === -32603) {
             getTicketInfo();
+          } else if (reason.code === 4001) {
+            console.log('reason:====312', reason.code);
+            router.push({
+              path: 'ticketList',
+              query: {
+                type: 'notTicket',
+              },
+            });
           } else {
             router.push({
               path: 'ticketList',
@@ -129,7 +136,6 @@ export default {
     console.log('window.inviteInfo', window.inviteInfo);
     handleEthereum();
     return {
-      connetIng,
       tickInfo,
       loading,
       turn,

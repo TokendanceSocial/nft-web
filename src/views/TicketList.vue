@@ -1,9 +1,9 @@
 <template lang="pug">
 .ticket
   .personal
-    img.avatar(src="./../assets/avatar.png")
+    img.avatar(src="./../assets/avatar11.png")
     .name {{name}}
-  .card(@click="turn" v-if="!type")
+  .card(@click="turn" v-if="!type && cardList.title")
     img.icon(:src="cardList.image")
     .title {{cardList.title}}
       img.open(src="./../assets/open.png")
@@ -16,7 +16,7 @@
       .options
         .label
           img.icon-label(src="./../assets/when.png")
-          .label-desc Where
+          .label-desc When
         .option {{cardList.when}}
   .message(v-if="type === 'notTicket'") There is no tickens yet
   .message(v-if="type === 'cantGetTicket'") The invitation seats have been filled
@@ -27,23 +27,84 @@
 <script>
 import { ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import axios from 'axios';
+import webObj from './web';
 
 export default {
   name: 'TicketList',
   setup() {
     const router = useRouter();
-    const { type } = useRoute().query;
+    const route = useRoute();
+    const type = ref(route.query.type);
     const cardList = ref('');
-    if (!type) {
-      cardList.value = window.wallet.tickInfo;
-    }
-    const connetIng = ref(false);
-    const loading = ref(false);
     const name = ref();
     const changeName = (value) => {
       name.value = `${value.substring(0, 6)}……${value.substring(value.length - 4, value.length)}`;
     };
-    changeName(window.wallet.address);
+    const handleImgSrc = (baseUrl, urlDetail) => {
+      console.log('urlDetail: ', urlDetail);
+      console.log('baseUrl: ', baseUrl);
+      const url = `${baseUrl.split('/ipfs/')[0]}/ipfs/${urlDetail.split('ipfs://')[1]}`;
+      return `https://${url.split('//')[1].split('/').slice(0, -1).join('/')}/1.png`;
+    };
+    if (!window.wallet) {
+      const { greet, provider } = webObj;
+      console.log('provider: ', provider);
+      provider.send('eth_requestAccounts', []).then((addressInfo) => {
+        window.wallet = {};
+        window.wallet.provider = provider;
+        // eslint-disable-next-line prefer-destructuring
+        window.wallet.address = addressInfo[0];
+        changeName(addressInfo[0]);
+        greet.check_tokenid(addressInfo[0]).then((res) => {
+        // eslint-disable-next-line no-underscore-dangle
+          const tockenId = parseInt(res._hex, 16);
+          if (tockenId === 0) {
+            type.value = 'notTicket';
+            router.push({
+              path: 'ticketList',
+              query: {
+                type: 'notTicket',
+              },
+            });
+          }
+          greet.tokenURI(tockenId).then((info) => {
+            console.log('info: ', info);
+            window.wallet.tockenUrl = info;
+            const JSONUrl = `${info}${tockenId + 1}.json`;
+            axios.get(JSONUrl).then((response) => {
+              const data = { ...response?.data?.attributes, image: handleImgSrc(info, response?.data?.attributes.img) };
+              cardList.value = data;
+              window.wallet.tickInfo = data;
+            });
+          }).catch((reason) => {
+            type.value = 'cantGetTicket';
+            router.push({
+              path: 'ticketList',
+              query: {
+                type: 'cantGetTicket',
+              },
+            });
+            console.log('reason:====1', reason);
+          });
+        }).catch((reason) => {
+          type.value = 'notTicket';
+          router.push({
+            path: 'ticketList',
+            query: {
+              type: 'notTicket',
+            },
+          });
+          console.log('reason:====2', reason);
+        });
+      });
+    }
+    if (!type.value && window.wallet) {
+      cardList.value = window.wallet.tickInfo;
+    }
+    if (window.wallet) {
+      changeName(window.wallet.address);
+    }
     const turn = () => {
       router.push({ path: 'ticketInfo' });
     };
@@ -51,8 +112,6 @@ export default {
       cardList,
       name,
       type,
-      connetIng,
-      loading,
       turn,
     };
   },
@@ -107,9 +166,9 @@ export default {
     background-size 100% 100%
     overflow hidden
     .icon
-      width 2.3rem
-      height 2.3rem
-      margin 0.2rem auto 0.06rem
+      width 1.46rem
+      height 1.52rem
+      margin 0.62rem auto 0.42rem
       display block
     .title
       font-family 'PingFang SC'
@@ -157,6 +216,7 @@ export default {
         opacity 0.5
         display inline-block
         vertical-align: top;
+        text-align left
       .option
         font-family 'Inter'
         font-style normal
@@ -166,4 +226,8 @@ export default {
         display inline-block
         color #A6A6A6
         vertical-align: top;
+        width 4.2rem
+        overflow hidden
+        white-space nowrap
+        text-overflow ellipsis
 </style>

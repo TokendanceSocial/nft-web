@@ -2,7 +2,7 @@
 .ticket-info
   .info
     .header-bg
-    .ticket-dec
+    .ticket-dec(v-if="info")
       .dec-title
         img.info-icon(:src="info.image", draggle="false")
         .info-text
@@ -11,15 +11,15 @@
       .address
         .item
           .icon-where.icon where
-          span {{info.where}}
+          span.detail {{info.where}}
         .item
           .icon-when.icon when
-          span {{info.when}}
+          span.detail {{info.when}}
       .line
       .chain
         .chain-item
-          .item-name 主链
-          .item-value -
+          .item-name Chain
+          .item-value polygon
         .chain-item
           .item-name Creator
           .item-value {{info.creator}}
@@ -37,17 +37,18 @@
         .position(v-for="index in 2")
           .no-person(v-if="!inviteList[index - 1]" @click="copy")
           .has-person(v-if="inviteList[index - 1]")
-            img(src="~@/assets/avatarHead.png")
+            img(src="~@/assets/avatar11.png")
             p.name {{inviteList[index - 1]}}
-      p.tip-btn(v-if="inviteList.length < 2 && inviteList.length > 0") You can click the invite button
-      p.tip-btn(v-if="inviteList.length < 2 && inviteList.length > 0") to invite 2 people  to the conference
-      p.tip-btn(v-if="inviteList.length === 2") You have invited 2 people
+      p.tip-btn(v-if="inviteList.length < 2 && showInviteBtn") You can click the invite button
+      p.tip-btn(v-if="inviteList.length < 2 && showInviteBtn") to invite 2 people  to the conference
+      p.tip-btn(v-if="inviteList.length === 2 && showInviteBtn") You have invited 2 people
   toast(:message="message", :type="toastType")
 </template>
 
 <script>
 import { ref } from 'vue';
 import { ethers } from 'ethers';
+import { useRouter } from 'vue-router';
 import toast from '../components/Toast.vue';
 import config from '../config/index';
 import { contractAbi } from '../config/TicketContract';
@@ -59,44 +60,50 @@ export default ({
   setup() {
     const showInviteBtn = ref(false);
     const address = ref('');
+    const router = useRouter();
     const toastType = ref('right');
     const message = ref('');
-    const changeName = () => {
-      address.value = `${window.wallet.address.substring(0, 6)}……${window.wallet.address.substring(window.wallet.address.length - 4, window.wallet.address.length)}`;
-    };
+    const info = ref('');
     const inviteList = ref([]);
-    const { provider } = window.wallet;
-    const signer = provider.getSigner();
-    const greet = new ethers.Contract(config.CONTRACT_ADDRESS, contractAbi.abi, signer);
-    // eslint-disable-next-line no-underscore-dangle
-    greet._1gpeople(window.wallet.address).then(async (i) => {
-      console.log('i: ', i);
-      if (!i) return;
-      showInviteBtn.value = true;
+    if (!window.wallet) {
+      router.push({ path: 'ticketList' });
+    } else {
+      info.value = window.wallet.tickInfo;
+      const { provider } = window.wallet;
+      const signer = provider.getSigner();
+      const greet = new ethers.Contract(config.CONTRACT_ADDRESS, contractAbi.abi, signer);
       // eslint-disable-next-line no-underscore-dangle
-      let address1 = '';
-      let address2 = '';
-      try {
+      greet._1gpeople(window.wallet.address).then(async (i) => {
+        console.log('i: ', i);
+        if (!i) return;
+        showInviteBtn.value = true;
         // eslint-disable-next-line no-underscore-dangle
-        address1 = await greet._invitepeople(window.wallet.address, 0);
-        inviteList.value.push(address1);
-      } catch (error) {
-        console.log('error: ', error);
-      }
-      try {
-        if (address1) {
-          // eslint-disable-next-line no-underscore-dangle
-          address2 = await greet._invitepeople(window.wallet.address, 1);
-          inviteList.value.push(address2);
+        let address1 = '';
+        let address2 = '';
+        try {
+        // eslint-disable-next-line no-underscore-dangle
+          address1 = await greet._invitepeople(window.wallet.address, 0);
+          inviteList.value.push(address1);
+        } catch (error) {
+          console.log('error: ', error);
         }
-      } catch (error) {
-        console.log('error: ', error);
-      }
-      console.log('inviteList: ', inviteList);
-    }).catch((reason) => {
-      console.log('reason:œ====', reason);
-    });
-
+        try {
+          if (address1) {
+          // eslint-disable-next-line no-underscore-dangle
+            address2 = await greet._invitepeople(window.wallet.address, 1);
+            inviteList.value.push(address2);
+          }
+        } catch (error) {
+          console.log('error: ', error);
+        }
+        console.log('inviteList: ', inviteList);
+      }).catch((reason) => {
+        console.log('reason:œ====', reason);
+      });
+    }
+    const changeName = () => {
+      address.value = `${config.CONTRACT_ADDRESS.substring(0, 6)}……${config.CONTRACT_ADDRESS.substring(config.CONTRACT_ADDRESS.length - 4, config.CONTRACT_ADDRESS.length)}`;
+    };
     const copy = () => {
       const value = `${window.location.origin}/#/?address=${window.wallet.address}&tockenUrl=${encodeURIComponent(window.wallet.tockenUrl)}`;
       const copyInput = document.createElement('input');
@@ -116,7 +123,7 @@ export default ({
       message,
       showInviteBtn,
       inviteList,
-      info: window.wallet.tickInfo,
+      info,
       address,
       copy,
     };
@@ -128,7 +135,7 @@ export default ({
 .ticket-info {
   background-color #0C1119
   width 100%
-  height 100%
+  min-height 100%
   overflow hidden
   display flex
   flex-direction column
@@ -137,6 +144,9 @@ export default ({
   font-weight 400
   font-size 0.28rem
   color #FFFBFF
+  .tip-btn {
+    opacity 0.5
+  }
   .info {
     margin-top 0.32rem
     flex: 1
@@ -184,41 +194,46 @@ export default ({
       }
     }
     .address {
-      height 1.4rem
       width 100%
       margin 0.36rem 0 0.64rem 0
       border-radius 0.24rem
       background-color #1F2930
-      padding 0.24rem 0 0.24rem 0.4rem
+      padding 0.24rem 0.24rem 0.24rem 0.4rem
       box-sizing border-box
       color #A6A6A6
       font-size 0.28rem
       display flex
       flex-direction column
       justify-content space-between
+      .detail {
+        text-align left
+        width 4.5rem
+      }
       .item {
         display flex
         flex-direction row
-        height: 0.34rem
         line-height: 0.34rem
+        margin-bottom 0.2rem
         .icon {
           width: 0.88rem
           padding-left 0.44rem
-          margin-right: 0.72rem
+          margin-right: 0.4rem
           opacity: 0.5;
         }
         .icon-where {
           background-image url('~@/assets/place.png')
           background-size 0.24rem 0.28rem
           background-repeat no-repeat
-          background-position 0 50%
+          background-position 0 0
           color: #A6A6A6;
+          text-align left
         }
         .icon-when {
           background-image url('~@/assets/time.png')
           background-size 0.24rem 0.28rem
           background-repeat no-repeat
           background-position 0 50%
+          text-align left
         }
       }
     }
