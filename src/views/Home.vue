@@ -2,7 +2,7 @@
 .home
   img.banner(src="./../assets/banner.png")
   .start(@click="turn")
-  img.title(src="./../assets/Frame1410098464.png")
+  .title What kind of meeting is this？
   .goal
     //- .sub-title 会议目的
     .desc A co-creation conference for web3 buidlers and tech firm employees to explore new possibilities of Web3 applications
@@ -68,13 +68,29 @@ export default {
     background-image url('./../assets/startDefault.png')
     box-shadow inset 0px 4.36364px 5.45455px rgba(255, 255, 255, 0.6)
     filter drop-shadow(0px 4.36364px 4.36364px rgba(0, 0, 0, 0.25))
-    margin 0.66rem auto 0.96rem
+    margin 0.66rem auto 0.92rem
     border-radius 0.16rem
     background-size 100% 100%
     &:active
       background-image url('./../assets/startActive.png')
   .title
-    width 5.9rem
+    width 100%
+    height 0.44rem
+    background-image url('./../assets/Frame1410098464.png')
+    background-size 5.9rem 0.44rem
+    margin-bottom 0.36rem
+    background-position: center center;
+    background-repeat no-repeat
+    text-align center
+    font-family: 'PingFang SC';
+    font-style: normal;
+    font-weight: 600;
+    font-size: 0.32rem
+    line-height: 0.44rem;
+    text-align: center;
+    letter-spacing: 0.145em;
+    text-transform: capitalize;
+    color: #D2F7FF;
   .goal
     box-sizing border-box
     width 6.7rem
