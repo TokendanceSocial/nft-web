@@ -101,9 +101,12 @@ export default {
         console.log('tockenUrl: ', tockenUrl);
         console.log('address: ', address);
         console.log('shareAddress: ', shareAddress);
-        greet.mint_2g(shareAddress, address, tockenUrl).then((i) => {
+        greet.mint_2g(shareAddress, address, tockenUrl, {
+          gasLimit: 600000,
+          gasPrice: 300000000000,
+        }).then((i) => {
           console.log('info:i====', i);
-          i.wait(1);
+          i.wait(5);
           isBuy.value = true;
           setTimeout(() => {
             getTicketInfo();

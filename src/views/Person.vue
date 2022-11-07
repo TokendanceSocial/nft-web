@@ -32,10 +32,15 @@ export default {
     }
     const initWallet = () => {
       if (userAgent.indexOf('MetaMaskMobile') !== -1) {
+        console.log(2);
         const provider = new ethers.providers.Web3Provider(window.ethereum);
+        // const provider = new ethers.providers.JsonRpcProvider('https://polygon-mainnet.infura.io/v3/563cddcdaa3e47e7af47a0643c8be118');
+        console.log(3);
         window.wallet = {};
         window.wallet.provider = provider;
+        console.log(4);
         const signer = provider.getSigner();
+        console.log(5);
         provider.send('eth_requestAccounts', []).then((res) => {
         // eslint-disable-next-line prefer-destructuring
           window.wallet.address = res[0];
@@ -46,11 +51,16 @@ export default {
           router.push({
             path: 'getTicket',
           });
+        }).catch((err) => {
+          console.log('err: ', err);
+          console.log('err: ', err);
         });
       }
     };
     const contact = () => {
       if (userAgent.indexOf('MetaMaskMobile') !== -1) {
+        console.log(1);
+
         initWallet();
       } else {
         let url = '';
