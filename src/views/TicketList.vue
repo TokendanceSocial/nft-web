@@ -2,7 +2,7 @@
 .ticket
   .personal
     img.avatar(src="./../assets/avatar11.png")
-    .name {{name}}
+    .name(@click="copyText(userAddress, 'Copy successfully')") {{name}}
   .card(@click="turn" v-if="!type && cardList.title")
     img.icon(:src="cardList.image")
     .title {{cardList.title}}
@@ -21,7 +21,7 @@
   .message(v-if="type === 'notTicket'") There is no tickens yet
   .message(v-if="type === 'cantGetTicket'") The invitation seats have been filled
     br/ There is no tickens yet
-
+  toast(:message="message", :type="toastType")
 </template>
 
 <script>
@@ -29,14 +29,21 @@ import { ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import axios from 'axios';
 import webObj from './web';
+import toast from '../components/Toast.vue';
 
 export default {
   name: 'TicketList',
+  components: {
+    toast,
+  },
   setup() {
     const router = useRouter();
     const route = useRoute();
     const type = ref(route.query.type);
+    const toastType = ref('right');
+    const message = ref('');
     const cardList = ref('');
+    const userAddress = ref('');
     const name = ref();
     const changeName = (value) => {
       name.value = `${value.substring(0, 6)}……${value.substring(value.length - 4, value.length)}`;
@@ -55,6 +62,8 @@ export default {
         window.wallet.provider = provider;
         // eslint-disable-next-line prefer-destructuring
         window.wallet.address = addressInfo[0];
+        // eslint-disable-next-line prefer-destructuring
+        userAddress.value = addressInfo[0];
         changeName(addressInfo[0]);
         greet.check_tokenid(addressInfo[0]).then((res) => {
         // eslint-disable-next-line no-underscore-dangle
@@ -99,6 +108,18 @@ export default {
         });
       });
     }
+    const copyText = (value, msg) => {
+      const copyInput = document.createElement('input');
+      document.body.appendChild(copyInput);
+      copyInput.setAttribute('value', value);
+      copyInput.select();
+      document.execCommand('Copy');
+      message.value = msg;
+      setTimeout(() => {
+        message.value = '';
+      }, 2000);
+      copyInput.remove();// 删除动态创建的节点
+    };
     if (!type.value && window.wallet) {
       cardList.value = window.wallet.tickInfo;
     }
@@ -110,6 +131,10 @@ export default {
     };
     return {
       cardList,
+      toastType,
+      userAddress,
+      copyText,
+      message,
       name,
       type,
       turn,

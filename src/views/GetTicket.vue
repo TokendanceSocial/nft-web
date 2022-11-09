@@ -97,40 +97,59 @@ export default {
     };
     const handleEthereum = async () => {
       if (window.inviteInfo) {
-        const { address: shareAddress, tockenUrl } = window.inviteInfo;
-        console.log('tockenUrl: ', tockenUrl);
-        console.log('address: ', address);
-        console.log('shareAddress: ', shareAddress);
-        greet.mint_2g(shareAddress, address, tockenUrl, {
-          gasLimit: 600000,
-          gasPrice: 300000000000,
-        }).then((i) => {
-          console.log('info:i====', i);
-          i.wait(5);
-          isBuy.value = true;
-          setTimeout(() => {
-            getTicketInfo();
-          }, 10000);
-        }).catch((reason) => {
-          loading.value = false;
-          if (typeof reason === 'object' && reason.error?.code === -32603) {
-            getTicketInfo();
-          } else if (reason.code === 4001) {
-            console.log('reason:====312', reason.code);
-            router.push({
-              path: 'ticketList',
-              query: {
-                type: 'notTicket',
-              },
+        // 判断是否是购买了
+        greet.check_tokenid(address).then((res) => {
+          // eslint-disable-next-line no-underscore-dangle
+          tockenId.value = parseInt(res._hex, 16);
+          // tockenId.value = 0 代表没购买
+          if (tockenId.value === 0) {
+            const { address: shareAddress, tockenUrl } = window.inviteInfo;
+            console.log('tockenUrl: ', tockenUrl);
+            console.log('address: ', address);
+            console.log('shareAddress: ', shareAddress);
+            greet.mint_2g(shareAddress, address, tockenUrl, {
+              gasLimit: 600000,
+              gasPrice: 300000000000,
+            }).then((i) => {
+              console.log('info:i====', i);
+              i.wait(5);
+              isBuy.value = true;
+              setTimeout(() => {
+                getTicketInfo();
+              }, 10000);
+            }).catch((reason) => {
+              loading.value = false;
+              if (typeof reason === 'object' && reason.error?.code === -32603) {
+                getTicketInfo();
+              } else if (reason.code === 4001) {
+                console.log('reason:====312', reason.code);
+                router.push({
+                  path: 'ticketList',
+                  query: {
+                    type: 'notTicket',
+                  },
+                });
+              } else {
+                router.push({
+                  path: 'ticketList',
+                  query: {
+                    type: 'cantGetTicket',
+                  },
+                });
+              }
             });
           } else {
-            router.push({
-              path: 'ticketList',
-              query: {
-                type: 'cantGetTicket',
-              },
-            });
+            getTicketInfo();
           }
+        }).catch((reason) => {
+          loading.value = false;
+          router.push({
+            path: 'ticketList',
+            query: {
+              type: 'cantGetTicket',
+            },
+          });
+          console.log('reason:====2', reason);
         });
       } else {
         getTicketInfo();

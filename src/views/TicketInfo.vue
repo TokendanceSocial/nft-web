@@ -28,7 +28,7 @@
           .item-value {{info.tokenstandard}}
         .chain-item
           .item-name Asset contract
-          .item-value {{address}}
+          .item-value(@click="copyText(address, 'Copy successfully')") {{address}}
         .chain-item
           .item-name Token id
           .item-value {{info.tokenid}}
@@ -104,23 +104,27 @@ export default ({
     const changeName = () => {
       address.value = `${config.CONTRACT_ADDRESS.substring(0, 6)}……${config.CONTRACT_ADDRESS.substring(config.CONTRACT_ADDRESS.length - 4, config.CONTRACT_ADDRESS.length)}`;
     };
-    const copy = () => {
-      const value = `${window.location.origin}/#/?address=${window.wallet.address}&tockenUrl=${encodeURIComponent(window.wallet.tockenUrl)}`;
+    const copyText = (value, msg) => {
       const copyInput = document.createElement('input');
       document.body.appendChild(copyInput);
       copyInput.setAttribute('value', value);
       copyInput.select();
       document.execCommand('Copy');
-      message.value = 'The link was successfully copied';
+      message.value = msg;
       setTimeout(() => {
         message.value = '';
       }, 2000);
       copyInput.remove();// 删除动态创建的节点
     };
+    const copy = () => {
+      const value = `${window.location.origin}/#/?address=${window.wallet.address}&tockenUrl=${encodeURIComponent(window.wallet.tockenUrl)}`;
+      copyText(value, 'The link was successfully copied');
+    };
     changeName();
     return {
       toastType,
       message,
+      copyText,
       showInviteBtn,
       inviteList,
       info,
