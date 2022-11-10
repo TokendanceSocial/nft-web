@@ -47,6 +47,7 @@ export default {
     const name = ref();
     const changeName = (value) => {
       name.value = `${value.substring(0, 6)}……${value.substring(value.length - 4, value.length)}`;
+      userAddress.value = value;
     };
     const handleImgSrc = (baseUrl, urlDetail) => {
       console.log('urlDetail: ', urlDetail);
@@ -109,6 +110,8 @@ export default {
       });
     }
     const copyText = (value, msg) => {
+      console.log('value: ', value);
+      console.log('msg: ', msg);
       const copyInput = document.createElement('input');
       document.body.appendChild(copyInput);
       copyInput.setAttribute('value', value);

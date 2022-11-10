@@ -28,7 +28,7 @@
           .item-value {{info.tokenstandard}}
         .chain-item
           .item-name Asset contract
-          .item-value(@click="copyText(address, 'Copy successfully')") {{address}}
+          .item-value(@click="copyText(userAddress, 'Copy successfully')") {{address}}
         .chain-item
           .item-name Token id
           .item-value {{info.tokenid}}
@@ -60,6 +60,7 @@ export default ({
   setup() {
     const showInviteBtn = ref(false);
     const address = ref('');
+    const userAddress = ref(config.CONTRACT_ADDRESS);
     const router = useRouter();
     const toastType = ref('right');
     const message = ref('');
@@ -125,6 +126,7 @@ export default ({
       toastType,
       message,
       copyText,
+      userAddress,
       showInviteBtn,
       inviteList,
       info,
